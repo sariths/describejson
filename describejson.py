@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 
 
 _typeToString = {
@@ -14,9 +13,34 @@ _typeToString = {
 
 
 class JsonItem(object):
+    """
+    Typical usage:
+        import json
+        with open("somefile.json") as jsonData:
+            jsonObj = json.load(jsonData)
+            x = JsonItem(jsonObj, strictness="keys")
+            print(x)
+
+    """
     DEFAULT_STRICTNESS = 'length'
 
     def __init__(self, item, indent=0, strictness=None):
+        """
+        :param item: This is the item that is obtained after reading the json file and
+            extracting the data from it.
+        :param indent: The starting string indent.
+        :param strictness: The option to determine how strictly JSON objects and lists should be compared.
+            Strictness affects the amount of output you'll see. For example if a list contains two lists,
+            `describejson.py` will just tell you that very concisely if you use `--strictness type`.
+            If you want the fact that things differ in length or contents, use a higher strictness level.
+            In order of increasing strictness, the possible values are:
+                type- compare everything by type only.
+                length- compare lists and objects by length.
+                keys- compare lists by equality, objects by keys.
+                equal- compare objects and list by equality.
+
+
+        """
         self._strictness = strictness or self.DEFAULT_STRICTNESS
         self._compare = getattr(self, '_eq_%s' % self._strictness)
         self._indent = indent
