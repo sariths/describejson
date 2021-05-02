@@ -1,18 +1,15 @@
 #!/usr/bin/env python
 
-from types import (
-    BooleanType, DictType, FloatType, IntType, ListType, LongType, NoneType,
-    UnicodeType)
 
 _typeToString = {
-    BooleanType: 'boolean',
-    DictType: 'dict',
-    FloatType: 'float',
-    IntType: 'int',
-    ListType: 'list',
-    LongType: 'long',
-    NoneType: 'None',
-    UnicodeType: 'unicode',
+    bool: 'boolean',
+    dict: 'dict',
+    float: 'float',
+    int: 'int',
+    list: 'list',
+    int: 'int',
+    type(None): 'None',
+    str: 'str',
 }
 
 
@@ -25,14 +22,14 @@ class JsonItem(object):
         self._indent = indent
         self._duplications = 1
         self._type = type(item)
-        if self._type == DictType:
+        if self._type == dict:
             self._len = len(item)
             if strictness == 'keys':
                 self._keys = sorted(item.keys())
             elif strictness == 'equal':
                 self._item = item
-            self._summarize(item.itervalues())
-        elif self._type == ListType:
+            self._summarize(item.values())
+        elif self._type == list:
             self._len = len(item)
             if strictness in ('keys', 'equal'):
                 self._item = item
@@ -60,7 +57,7 @@ class JsonItem(object):
     def _eq_length(self, other):
         """Dicts and lists must have the same number of keys."""
         if self._type == other._type:
-            if self._type == DictType or self._type == ListType:
+            if self._type == dict or self._type == list:
                 return self._len == other._len
             else:
                 return True
@@ -70,9 +67,9 @@ class JsonItem(object):
     def _eq_keys(self, other):
         """Lists must be equal, dicts must have the same keys."""
         if self._type == other._type:
-            if self._type == ListType:
+            if self._type == list:
                 return self._item == other._item
-            elif self._type == DictType:
+            elif self._type == dict:
                 return self._keys == other._keys
             else:
                 return True
@@ -82,7 +79,7 @@ class JsonItem(object):
     def _eq_equal(self, other):
         """Lists and dicts must be equal."""
         if self._type == other._type:
-            if self._type in (DictType, ListType):
+            if self._type in (dict, list):
                 return self._item == other._item
             else:
                 return True
@@ -93,7 +90,7 @@ class JsonItem(object):
         prefix = '%s%s %s%s' % (
             self._indent * ' ', self._duplications, _typeToString[self._type],
             '' if self._duplications == 1 else 's')
-        if self._type in (DictType, ListType):
+        if self._type in (dict, list):
             result = ['%s of length %d.%s' % (
                 prefix, self._len, ' Values:' if self._len else '')]
             for item in self._contents:
@@ -107,29 +104,4 @@ class JsonItem(object):
 
 
 if __name__ == '__main__':
-    from json import loads
-    import optparse
-    import sys
-
-    opts = optparse.OptionParser()
-    opts.add_option('-s', '--strictness', default=JsonItem.DEFAULT_STRICTNESS,
-                    help=("How strictly to compare dicts and lists to "
-                          "each other. Possible values are 'type': by type "
-                          "only. 'length': by length. 'keys': lists by "
-                          "equality, dicts by keys. 'equal': dicts and list "
-                          "by equality. (default is '%default')."))
-    args, opt = opts.parse_args()
-
-    if args.strictness not in ('type', 'length', 'keys', 'equal'):
-        print >>sys.stderr, 'Unknown strictness argument value.'
-        sys.stdout = sys.stderr
-        opts.print_help()
-        sys.exit(1)
-
-    try:
-        j = loads(sys.stdin.read())
-    except ValueError, e:
-        print >>sys.stderr, 'Could not load JSON object from stdin.'
-        sys.exit(1)
-
-    print JsonItem(j, indent=0, strictness=args.strictness)
+    pass
